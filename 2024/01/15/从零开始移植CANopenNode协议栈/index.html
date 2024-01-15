@@ -4,18 +4,42 @@
   <meta charset="utf-8">
   
   
-  <title>MindMotion Document</title>
+  <title>从零开始移植CANopenNode协议栈 | MindMotion Document</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="本Demo页面用于分享MM32 MCU 相关的技术文档">
-<meta property="og:type" content="website">
-<meta property="og:title" content="MindMotion Document">
-<meta property="og:url" content="http://example.com/index.html">
+  <meta name="description" content="基于MM32G5330移植CANopenNode协议栈[TOC] 引言基本的CAN总线外设驱动程序能够提供基本的操作硬件电路系统的服务，但在具体的应用系统中，更多是基于协议栈开发上层应用，而不是针对某个具体的芯片平台编写定制的应用程序。目前CANopen是工业自动化领域最常用的协议栈标准之一。对应地，有一些实现CANopen协议的开源软件包，例如CANopenNode、CAN Festival等。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零开始移植CANopenNode协议栈">
+<meta property="og:url" content="http://example.com/2024/01/15/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%A7%BB%E6%A4%8DCANopenNode%E5%8D%8F%E8%AE%AE%E6%A0%88/index.html">
 <meta property="og:site_name" content="MindMotion Document">
-<meta property="og:description" content="本Demo页面用于分享MM32 MCU 相关的技术文档">
+<meta property="og:description" content="基于MM32G5330移植CANopenNode协议栈[TOC] 引言基本的CAN总线外设驱动程序能够提供基本的操作硬件电路系统的服务，但在具体的应用系统中，更多是基于协议栈开发上层应用，而不是针对某个具体的芯片平台编写定制的应用程序。目前CANopen是工业自动化领域最常用的协议栈标准之一。对应地，有一些实现CANopen协议的开源软件包，例如CANopenNode、CAN Festival等。">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/CANopen-intro-basics-guide-dummies-tutorial.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/OSI_Mode_For_CANopen.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/CANopen-Network-Model-Object-Dictionary-Communication-Application.svg">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/ModeforCANopen.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/CANopen-COB-ID-Message-Format-CAN-Frame.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/CANopen-data-structural.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/CANopen_BasicNetwork.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/CANopen_ComplexesNetwork.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/CANopenStatus.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/components_canopen.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/CANopenNode-example.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/CANopenNode-drvTemp.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/PCAN-View.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/image-mcu&pc.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/Stop-the-Node.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/Start-the-Node.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/Preoperaion-the-Node.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/Reset--the-Node.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/Reset-commu-the-Node.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/Get-heartbeat.png">
+<meta property="og:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/Set-heartbeat.png">
+<meta property="article:published_time" content="2024-01-15T07:33:10.000Z">
+<meta property="article:modified_time" content="2024-01-15T08:05:03.782Z">
 <meta property="article:author" content="Allen Ma">
-<meta property="article:tag" content="CANopenNode,TinyUSB,LwIP,CAN,USB">
+<meta property="article:tag" content="CANopenNode">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/AllenMaa/image/raw/master/CANopen/CANopen-intro-basics-guide-dummies-tutorial.png">
   
     <link rel="alternate" href="/atom.xml" title="MindMotion Document" type="application/atom+xml">
   
@@ -78,9 +102,7 @@
 </header>
 
       <div class="outer">
-        <section id="main">
-  
-    <article id="post-从零开始移植CANopenNode协议栈" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-从零开始移植CANopenNode协议栈" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2024/01/15/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%A7%BB%E6%A4%8DCANopenNode%E5%8D%8F%E8%AE%AE%E6%A0%88/" class="article-date">
   <time class="dt-published" datetime="2024-01-15T07:33:10.000Z" itemprop="datePublished">2024-01-15</time>
@@ -93,8 +115,8 @@
       <header class="article-header">
         
   
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2024/01/15/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%A7%BB%E6%A4%8DCANopenNode%E5%8D%8F%E8%AE%AE%E6%A0%88/">从零开始移植CANopenNode协议栈</a>
+    <h1 class="p-name article-title" itemprop="headline name">
+      从零开始移植CANopenNode协议栈
     </h1>
   
 
@@ -810,91 +832,19 @@
     </footer>
   </div>
   
-</article>
-
-
-
+    
+<nav id="article-nav">
   
-    <article id="post-从零开始移植LwIP协议栈" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2024/01/15/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%A7%BB%E6%A4%8DLwIP%E5%8D%8F%E8%AE%AE%E6%A0%88/" class="article-date">
-  <time class="dt-published" datetime="2024-01-15T03:47:01.000Z" itemprop="datePublished">2024-01-15</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
   
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2024/01/15/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%A7%BB%E6%A4%8DLwIP%E5%8D%8F%E8%AE%AE%E6%A0%88/">从零开始移植LwIP协议栈</a>
-    </h1>
+    <a href="/2024/01/15/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%A7%BB%E6%A4%8DLwIP%E5%8D%8F%E8%AE%AE%E6%A0%88/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">从零开始移植LwIP协议栈</div>
+    </a>
   
+</nav>
 
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2024/01/15/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%A7%BB%E6%A4%8DLwIP%E5%8D%8F%E8%AE%AE%E6%A0%88/" data-id="clreo4cxw00000cv958zl8k3p" data-title="从零开始移植LwIP协议栈" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/LwIP/" rel="tag">LwIP</a></li></ul>
-
-    </footer>
-  </div>
   
 </article>
-
-
-
-  
-    <article id="post-从零开始移植TinyUSB协议栈" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2024/01/15/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%A7%BB%E6%A4%8DTinyUSB%E5%8D%8F%E8%AE%AE%E6%A0%88/" class="article-date">
-  <time class="dt-published" datetime="2024-01-15T03:44:40.000Z" itemprop="datePublished">2024-01-15</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2024/01/15/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%A7%BB%E6%A4%8DTinyUSB%E5%8D%8F%E8%AE%AE%E6%A0%88/">从零开始移植TinyUSB协议栈</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2024/01/15/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%A7%BB%E6%A4%8DTinyUSB%E5%8D%8F%E8%AE%AE%E6%A0%88/" data-id="clreo4cy200030cv90z9x8rc3" data-title="从零开始移植TinyUSB协议栈" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/TinyUSB/" rel="tag">TinyUSB</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/USB/" rel="tag">USB</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
 </section>
